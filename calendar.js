@@ -3,6 +3,7 @@
 //================================================
 
 //外部スクリプトのインポート
+//TODO: なおすのめんどうなのです。
 var script;
 script = document.createElement("script");
 script.setAttribute("src", "../../Common/js/plugins/Calendar/js/calendardialog.js");
@@ -10,6 +11,11 @@ document.getElementsByTagName("head")[0].appendChild(script);
 
 script = document.createElement("link");
 script.setAttribute("href", "../../Common/js/plugins/Calendar/FullCalendar/css/fullcalendar.css");
+script.setAttribute("rel",'stylesheet');
+document.getElementsByTagName("head")[0].appendChild(script);
+
+script = document.createElement("link");
+script.setAttribute("href", "../../Common/js/plugins/Calendar/qtip/css/jquery.qtip.min.css");
 script.setAttribute("rel",'stylesheet');
 document.getElementsByTagName("head")[0].appendChild(script);
 
@@ -30,6 +36,10 @@ document.getElementsByTagName("head")[0].appendChild(script2);
 var script4 = document.createElement("script");
 script4.setAttribute("src", "../../Common/js/plugins/Calendar/FullCalendar/js/gcal.js");
 document.getElementsByTagName("head")[0].appendChild(script4);
+
+var script5 = document.createElement("script");
+script5.setAttribute("src", "../../Common/js/plugins/Calendar/qtip/js/jquery.qtip.min.js");
+document.getElementsByTagName("head")[0].appendChild(script5);
 
 (function($, jn){
 
@@ -74,6 +84,41 @@ document.getElementsByTagName("head")[0].appendChild(script4);
         //             .css('background-position','center')
         //         )
         //     );
+    };
+
+    var origin_onContextMemuLinkBuildStarted = jn.onContextMemuLinkBuildStarted;
+    jn.onContextMemuLinkBuildStarted = function(accounts){
+        origin_onContextMemuGearBuildStarted && janet.onContextMemuGearBuildStarted(accounts);
+
+        //カレンダー右クリック時の動作追加
+        var contextmenuAction_original = jn.contextmenuAction;
+        jn.contextmenuAction = function(act,elem,event){
+            if(elem.hasClass('fc-h-event')){
+                if (event && event.pageX && event.pageY) {
+
+                }else{
+                    jn.showContextmenu(act, elem);
+                }
+            }else{
+                contextmenuAction_original.apply(this,arguments);
+            }
+        };
+
+        //カレンダー用のActionの追加
+        var action_original = jn.action;
+        jn.action = function(options){
+            switch(options.act){
+                // 予定を消す
+                case 'remove_calendar':
+
+                    break;
+                // 元の処理へ遷移
+                default:
+                    action_original.apply(this,arguments);
+                    break;
+            }
+        };
+
     };
 
     //ツイートごとに設置されてるメニューへカレンダー追加ボタンの追加
@@ -153,9 +198,11 @@ document.getElementsByTagName("head")[0].appendChild(script4);
             timeout: jn.REQUEST_SERV_TIMEOUT_CONNECT_TWITTER,
             done: function(success, data, code){
                 //自分の非公開メモを読み取り
-                var memo = data[0].user_memo;
+                var memo = data[0].user_memo || null;
+                console.log(data[0].user_memo);
                 //新たな非公開メモを作成し
                 memo = schedule_json(memo,options,new Date());
+                console.log(memo);
                 //それを保存する。
                 usermemo_save(memo);
             }
@@ -220,6 +267,7 @@ document.getElementsByTagName("head")[0].appendChild(script4);
         //スケジュールの追加を行う
         schedule_array.push ({
             title: tweet.data.original,
+            name: tweet.data.user.name + " @" + tweet.data.user.screen_name,
             start: date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
             end: date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
             url: 'https://twitter.com/' + tweet.data.user.screen_name + '/status/' + tweet.data.id_str,
