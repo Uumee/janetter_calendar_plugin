@@ -1,8 +1,6 @@
 //================================================
-// advsearch
-//
-//	([^\\]{1})\n
-//	$1\\\n
+// calendardialog
+// カレンダーを表示したり、予定をドラッグして日付変更したりするダイアログ。
 //================================================
 (function($, jn){
 //
@@ -23,10 +21,10 @@ var template = '\
     //------------------------------------------------
     // advsearchダイアログですよ
     //------------------------------------------------
-    jn.calendar_viewer = function(){
+    jn.calendardialog = function(){
         this.dialog();
     };
-    jn.calendar_viewer.prototype = {
+    jn.calendardialog.prototype = {
         //------------------------------------------------
         // 初期化
         //------------------------------------------------
@@ -41,6 +39,7 @@ var template = '\
                 width: 500,
                 modal: true,
                 title: "ついーとかれんだー",
+                //todo: もうちょっと美しく！
                 close: function(event,ui){
                     var updated_schedules = $("#calendar").fullCalendar('getEventSources')[0].events;
 
@@ -49,16 +48,18 @@ var template = '\
                         console.log('更新されたスケジュールの配列作成開始');
                         for (var i = 0; i < updated_schedules.length; i++) {
                             console.log(i);
-                            var date = new Date(updated_schedules[i].start._d);
+                            var start_date = new Date(updated_schedules[i].start._d),
+                                end_date = new Date(updated_schedules[i].end._d);
                             saving_schedule_array.push({
                                 title: updated_schedules[i].title,
                                 allDay: updated_schedules[i]._allDay,
-                                start: date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2),
-                                end: date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2),
+                                start: start_date.getFullYear() + '-' + ('0' + (start_date.getMonth() + 1)).slice(-2) + '-' + ('0' + start_date.getDate()).slice(-2),
+                                end: end_date.getFullYear() + '-' + ('0' + (end_date.getMonth() + 1)).slice(-2) + '-' + ('0' + end_date.getDate()).slice(-2),
                                 url: updated_schedules[i].url
                             });
                         }
 
+                        //todo: ここ重複なう。
                         jn.websocket.send({
                             action: 'users_show',
                             data: {
@@ -77,10 +78,11 @@ var template = '\
                                     done: function (success, data, code) {
                                         if (success) {
                                             //メモの保存成功！
+                                            //FullCalendarの初期化をするため表示されたのを消す。
                                             $("#calendar").fullCalendar('destroy');
                                         } else {
                                             //メモの保存失敗・・・。
-                                            alert('失敗！');
+                                            alert('非公開メモの保存に失敗しました。');
                                         }
                                     }
                                 });
@@ -96,6 +98,7 @@ var template = '\
         open: function(){
             $('#calendar-content').dialog('open');
 
+            //FullCalendarの初期化
             $("#calendar").fullCalendar({
                 header: {
                     left: 'today',
@@ -150,6 +153,7 @@ var template = '\
                 },
                 timeout: jn.REQUEST_SERV_TIMEOUT_CONNECT_TWITTER,
                 done: function(success, data, code){
+                    //非公開メモを取得し、JSONデータにparse。それをイベントとして追加。
                     var event_json = JSON.parse(data[0].user_memo||"null");
                     console.log(event_json);
                     $("#calendar").fullCalendar('addEventSource',event_json);

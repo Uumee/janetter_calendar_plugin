@@ -5,7 +5,7 @@
 //外部スクリプトのインポート
 var script;
 script = document.createElement("script");
-script.setAttribute("src", "../../Common/js/plugins/Calendar/js/calendar_viewer.js");
+script.setAttribute("src", "../../Common/js/plugins/Calendar/js/calendardialog.js");
 document.getElementsByTagName("head")[0].appendChild(script);
 
 script = document.createElement("link");
@@ -124,7 +124,7 @@ document.getElementsByTagName("head")[0].appendChild(script4);
                 break;
             //カレンダーを開く
             case 'open_calendar':
-                (new jn.calendar_viewer()).open();
+                (new jn.calendardialog()).open();
                 break;
             // 元の処理へ遷移
             default:
@@ -140,6 +140,8 @@ document.getElementsByTagName("head")[0].appendChild(script4);
      * ２．取得した非公開メモを配列に戻す。（非公開メモはJSON文字列である前提）
      * ３．非公開メモとして保存されているスケジュール配列に引数であるツイートを登録
      * ４．メモをセーブする。
+     *
+     * todo: こういった非公開メモを使う部分をクラス化し、ローカルファイル出力不可のJanetterに一時保存機能をつけたい。
      */
     var add_calendar_json = function(options) {
         jn.websocket.send({
@@ -202,8 +204,13 @@ document.getElementsByTagName("head")[0].appendChild(script4);
      * @param existing_json {string} 保存されていたスケジュール（既存の非公開メモ）
      * @param tweet ツイートに関するデータ
      * @param date 保存する日付
+     *
+     * todo: 現在、全てのスケジュールはallDay:trueに設定してある。時間指定出来たほうが良いか？複雑になるか？
+     * todo: 時間指定可能とする場合、スケジュール追加に当たってさらなるDialogが必要かと思う。
+     * todo: スケジュールオブジェクトに追加するデータは今、開発者側で決め打ちしてるので、色々詳細な設定を追加したい。
      */
     var schedule_json = function(existing_json,tweet,date){
+        //初期化
         var schedule_array = [];
         //すでに他のスケジュールが保存されていた場合
         if(existing_json) {
@@ -230,6 +237,8 @@ document.getElementsByTagName("head")[0].appendChild(script4);
      * 参考http://qiita.com/kenchan0130/items/c4cea096b5a2b303d085
      * @param arg 判定する文字列及び関数
      * @returns {boolean}
+     *
+     * todo: ほんとに必要か？
      */
     var isJSON = function(arg) {
         arg = (typeof arg === "function") ? arg() : arg;
