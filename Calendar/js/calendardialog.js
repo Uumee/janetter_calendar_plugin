@@ -1,6 +1,6 @@
 //================================================
 // calendardialog
-// カレンダーを表示したり、予定をドラッグして日付変更したりするダイアログ。
+// カレンダーを表示したり、予定をドラッグして日付変更したりするダイアログに関する所
 //================================================
 (function($, jn){
 //
@@ -36,6 +36,7 @@ var template = '\
         //------------------------------------------------
         dialog: function(){
 
+            //画面の比率でダイアログのサイズ決めようとしたけど、色々挙動が予期してないのあったので保留。
             // var rate = 0.9;
              var main_window = $('div#main');
             // var content_h = main_window.height() * rate,
@@ -71,7 +72,9 @@ var template = '\
             dlg.dialog('open');
 
             //FullCalendarの初期化
+            //todo: もうちょっとわかりやすく初期化したりしたい。不要なの消すとか。
             $("#calendar").fullCalendar({
+                // ヘッダ
                 header: {
                     left: 'month,listMonth',
                     center: 'title,today',
@@ -108,18 +111,28 @@ var template = '\
                 dayNames: ['日曜日', '月曜日', '火曜日', '水曜日', '木曜日', '金曜日', '土曜日'],
                 // 曜日略称
                 dayNamesShort: ['日', '月', '火', '水', '木', '金', '土'],
+                // 一日のリストの日付フォーマット
                 listDayFormat: 'M月d日',
+                // リストに表示するものが無いときのコメ
                 noEventsMessage: 'この月にはまだ予定がありません。',
                 // 選択可
                 selectable: true,
                 // 選択時にプレースホルダーを描画
+                // todo: プレースホルダーって何？(アホ)
                 selectHelper: true,
+                // イベントを編集可能にする（開始日と日数）
                 editable: true,
+                // 高さ
+                // todo: contentHeight と height の違いは？
                 //contentHeight: "auto",
                 height: dlg.outerHeight()<200?"auto":dlg.outerHeight(),
+                // イベントをココで無くする。それにより保存機能が有効になる。
                 event: [],
+                // イベントが表示されたら実行
                 eventRender: function(event,element,view){
 
+                    //qtipでツイート微詳細の表示
+                    //todo: レイアウトやら細かい所を修正したいね。
                     var qtip_api = null;
                     if(view.type === 'month') {
                         var tooltips = element.qtip({
@@ -143,6 +156,7 @@ var template = '\
                     }
 
                     //予定の削除機能の付与
+                    //todo: もっと見やすい、使いやすい削除機能にしたい。現状ほぼコピペ。
                     if(view.name == 'listDay'){
                         element.find(".fc-list-item-time")
                             .append($("<span class='closeon'>✕</span>")
@@ -172,6 +186,7 @@ var template = '\
             });
 
             //イベントデータの取得
+            //todo: この辺も重複
             jn.websocket.send({
                 action: 'users_show',
                 data: {
@@ -243,7 +258,10 @@ var template = '\
                 });
             }
         },
-        holiday_json: function(){
+        //祝日JSONの取得
+        //todo: googleカレンダーでやるか、アナログだけど自前でjson作るかどうしようか。
+        //todo: ココ作って祝日イベント追加したら、果たして非公開メモの方の保存関連どうなることやら。
+        get_holiday_json: function(){
 
         }
     }

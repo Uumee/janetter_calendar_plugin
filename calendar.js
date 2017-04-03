@@ -1,9 +1,10 @@
 //================================================
 // カレンダーベーススクリプト
+// 主にJanetter側への所
 //================================================
 
 //外部スクリプトのインポート
-//TODO: なおすのめんどうなのです。
+//TODO: なおすのめんどうなのです。でもそのうちやるのです。
 var script;
 script = document.createElement("script");
 script.setAttribute("src", "../../Common/js/plugins/Calendar/js/calendardialog.js");
@@ -84,41 +85,6 @@ document.getElementsByTagName("head")[0].appendChild(script5);
         //             .css('background-position','center')
         //         )
         //     );
-    };
-
-    var origin_onContextMemuLinkBuildStarted = jn.onContextMemuLinkBuildStarted;
-    jn.onContextMemuLinkBuildStarted = function(accounts){
-        origin_onContextMemuGearBuildStarted && janet.onContextMemuGearBuildStarted(accounts);
-
-        //カレンダー右クリック時の動作追加
-        var contextmenuAction_original = jn.contextmenuAction;
-        jn.contextmenuAction = function(act,elem,event){
-            if(elem.hasClass('fc-h-event')){
-                if (event && event.pageX && event.pageY) {
-
-                }else{
-                    jn.showContextmenu(act, elem);
-                }
-            }else{
-                contextmenuAction_original.apply(this,arguments);
-            }
-        };
-
-        //カレンダー用のActionの追加
-        var action_original = jn.action;
-        jn.action = function(options){
-            switch(options.act){
-                // 予定を消す
-                case 'remove_calendar':
-
-                    break;
-                // 元の処理へ遷移
-                default:
-                    action_original.apply(this,arguments);
-                    break;
-            }
-        };
-
     };
 
     //ツイートごとに設置されてるメニューへカレンダー追加ボタンの追加
@@ -286,7 +252,7 @@ document.getElementsByTagName("head")[0].appendChild(script5);
      * @param arg 判定する文字列及び関数
      * @returns {boolean}
      *
-     * todo: ほんとに必要か？
+     * todo: ほんとに必要か？ デバッグではお世話になったけど。
      */
     var isJSON = function(arg) {
         arg = (typeof arg === "function") ? arg() : arg;
