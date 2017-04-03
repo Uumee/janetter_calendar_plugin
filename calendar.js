@@ -33,7 +33,7 @@ document.getElementsByTagName("head")[0].appendChild(script4);
 
 (function($, jn){
 
-/* JSONに関するテスト
+/* //JSONに関するテスト
     var obj_array = [];
 
     obj_array.push({ title: '01'});
@@ -48,7 +48,6 @@ document.getElementsByTagName("head")[0].appendChild(script4);
     console.info('TEST : json_str => JSON.parse() => object');
     console.log(JSON.parse(json_str));
 */
-
 
     //新着ツイート（画面表示前）
     //ここでツイートボタンとなるカレンダーボタンを設置したい
@@ -78,6 +77,7 @@ document.getElementsByTagName("head")[0].appendChild(script4);
     };
 
     //ツイートごとに設置されてるメニューへカレンダー追加ボタンの追加
+    //カレンダー表示用の大きなボタンの設置
     var origin_onContextMemuGearBuildStarted = jn.onContextMemuGearBuildStarted;
     jn.onContextMemuGearBuildStarted = function(success, data){
         origin_onContextMemuGearBuildStarted && janet.onContextMemuGearBuildStarted(accounts);
@@ -106,7 +106,7 @@ document.getElementsByTagName("head")[0].appendChild(script4);
                 )
             );
 
-        //セパレータを追加してからカレンダーのメニューを追加しますね。
+        //カレンダーのメニューの追加
         $('ul#contextmenu-tweet')
             .append($("<li class='separator'></li>"))
             .append($("<li>カレンダーに追加</li>").attr("action","add_calendar_today")
@@ -114,15 +114,15 @@ document.getElementsByTagName("head")[0].appendChild(script4);
 
     };
 
-    //Wikiのコピペ。カレンダー追加Actionの追加
+    //カレンダー用のActionの追加
     var action_original = jn.action;
     jn.action = function(options){
-        //jn.calendarvr = new jn.calendar_viewer();
         switch(options.act){
-            // 追加する処理
+            // カレンダーに追加する（日付は今日）
             case 'add_calendar_today':
                 add_calendar_json(options);
                 break;
+            //カレンダーを開く
             case 'open_calendar':
                 (new jn.calendar_viewer()).open();
                 break;
@@ -150,8 +150,11 @@ document.getElementsByTagName("head")[0].appendChild(script4);
             },
             timeout: jn.REQUEST_SERV_TIMEOUT_CONNECT_TWITTER,
             done: function(success, data, code){
+                //自分の非公開メモを読み取り
                 var memo = data[0].user_memo;
+                //新たな非公開メモを作成し
                 memo = schedule_json(memo,options,new Date());
+                //それを保存する。
                 usermemo_save(memo);
             }
         });
@@ -164,6 +167,7 @@ document.getElementsByTagName("head")[0].appendChild(script4);
      * @param new_memo 保存する文字列
      */
     var usermemo_save = function(new_memo){
+        //引数がJSONかどうか判定をし、JSONならば保存を実行する。
         if(isJSON(new_memo)) {
             jn.websocket.send({
                 action: 'users_memo_add',
@@ -189,28 +193,33 @@ document.getElementsByTagName("head")[0].appendChild(script4);
      * schedule_json
      *
      * 保存するツイートをスケジュールとしてJSONファイルに組み込みます。
+     * 既存のJSONデータがある場合は追加します。
      *
-     * @param existing_json 保存されていたスケジュール（既存の非公開メモ）
-     * @param tweet_data ツイートに関するデータ
+     * JSONデータの内訳として
+     *     配列[ オブジェクト{Tweet} , オブジェクト{Tweet} , ... ];
+     * とする。
+     *
+     * @param existing_json {string} 保存されていたスケジュール（既存の非公開メモ）
+     * @param tweet ツイートに関するデータ
      * @param date 保存する日付
      */
-    var schedule_json = function(existing_json,tweet_data,date){
-        var scd = {};
+    var schedule_json = function(existing_json,tweet,date){
+        var schedule_array = [];
         //すでに他のスケジュールが保存されていた場合
         if(existing_json) {
-            scd = JSON.parse(existing_json);
-            console.log(scd);
+            schedule_array = JSON.parse(existing_json);
         }
-        var scd_array = [];
-        scd [0]= {
-            title: tweet_data.data.original,
+
+        //スケジュールの追加を行う
+        schedule_array.push ({
+            title: tweet.data.original,
             start: date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
             end: date.getFullYear()+'-'+('0'+(date.getMonth()+1)).slice(-2)+'-'+('0'+date.getDate()).slice(-2),
-            url: 'https://twitter.com/' + tweet_data.data.user.screen_name + '/status/' + tweet_data.data.id_str,
+            url: 'https://twitter.com/' + tweet.data.user.screen_name + '/status/' + tweet.data.id_str,
             allDay: true
-        };
-        console.log(scd);
-        return JSON.stringify(scd);
+        });
+
+        return JSON.stringify(schedule_array);
     };
 
     /**
