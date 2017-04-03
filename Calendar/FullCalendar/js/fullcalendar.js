@@ -8796,7 +8796,7 @@ var View = FC.View = Class.extend(EmitterMixin, ListenerMixin, {
 	// Sets the view's title property to the most updated computed value
 	updateTitle: function() {
 		this.title = this.computeTitle();
-		console.log(this.calendar.setToolbarsTitle(this.title));
+		this.calendar.setToolbarsTitle(this.title);
 	},
 
 
@@ -10685,7 +10685,6 @@ function Toolbar(calendar, toolbarOptions) {
 					if (buttonName == 'title') {
 						groupChildren = groupChildren.add($('<h2>&nbsp;</h2>')); // we always want it to take up height
 						isOnlyButtons = false;
-						console.log(groupChildren);
 					}
 					else {
 						if ((customButtonProps = (calendar.options.customButtons || {})[buttonName])) {
